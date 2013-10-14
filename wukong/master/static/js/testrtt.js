@@ -20,7 +20,7 @@ $(function() {
         console.log('include');
         $('#log').html('<h4>The basestation is ready to include devices.</h4>');
         $.post('/testrtt/include', function(data) {
-            $('#log').append('<pre>' + data.log + '</pre>');
+            $('#log').append('<pre>' + data.log+ '</pre>');
         });
     });
 
@@ -41,7 +41,10 @@ $(function() {
     });
 
     // starts polling
-    poll('/testrtt/poll', 0, options);
+    poll('/testrtt/poll', 0, options,function (data) {
+		if (data.logs.join('') != '')
+			$('#log').append('<pre>' + data.logs.join('\n') + '</pre>');
+	});
 
 
     // node discovery
