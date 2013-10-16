@@ -787,14 +787,17 @@ class add_landmark(tornado.web.RequestHandler):
 class Build(tornado.web.RequestHandler):  
   def get(self):
     self.content_type = 'text/plain'
-
-    os.system('cd ../../src/config/wunode; ant > tmp')
-    f = open("../../src/config/wunode/tmp", "r")
-    log = f.readlines()
-    log = "<br>".join(log)
-    f.close()
-    command = 'cd ../../src/config/wunode; rm -f tmp'
-    os.system(command)
+    cmd = self.get_argument('cmd')
+    if cmd == 'start':
+      command = 'cd ../../src/config/wunode; rm -f tmp'
+      os.system(command)
+      os.system('(cd ../../src/config/wunode; ant 2>&1 | cat > tmp)&')
+      log = 'start'
+    elif cmd == 'poll':
+      f = open("../../src/config/wunode/tmp", "r")
+      log = f.readlines()
+      log = "".join(log)
+      f.close()
 
     self.write(log)
 
@@ -802,23 +805,26 @@ class Build(tornado.web.RequestHandler):
 class Upload(tornado.web.RequestHandler):  
   def get(self):
     self.content_type = 'text/plain'
-    port = self.get_argument("port")
-
-    f = open("../../src/settings.xml","w")
-    s = '<project name="settings">' + '\n' + \
-      '\t<property name="avrdude-programmer" value="' + port + '"/>' + '\n' + \
-      '</project>'
-    f.write(s)
-    f.close()
-    
-    command = 'cd ../../src/config/wunode; ant avrdude > tmp'
-    os.system(command)
-    f = open("../../src/config/wunode/tmp", "r")
-    log = f.readlines()
-    log = "<br>".join(log)
-    f.close()
-    command = 'cd ../../src/config/wunode; rm -f tmp'
-    os.system(command)
+    cmd = self.get_argument('cmd')
+    if cmd == 'start':
+      port = self.get_argument("port")
+      command = 'cd ../../src/config/wunode; rm -f tmp'
+      os.system(command)
+      f = open("../../src/settings.xml","w")
+      s = '<project name="settings">' + '\n' + \
+        '\t<property name="avrdude-programmer" value="' + port + '"/>' + '\n' + \
+        '</project>'
+      f.write(s)
+      f.close()
+      
+      command = '(cd ../../src/config/wunode; ant avrdude 2>&1 | cat> tmp)&'
+      os.system(command)
+      log='start'
+    elif cmd == 'poll':
+      f = open("../../src/config/wunode/tmp", "r")
+      log = f.readlines()
+      log = "".join(log)
+      f.close()
 
 
     #p = sub.Popen(command, stdout=sub.PIPE, stderr=sub.PIPE)
